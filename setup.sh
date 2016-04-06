@@ -145,6 +145,30 @@ EOF
     fi # End if USE_NGINX_ORG_REPO = yes && WEBSERVER = 1
 
 
+    # If user wants to install PHP from Ondrej Sury's "official" repo
+    if [ $USE_PHP_ONDREJ_REPO = "yes" ]; then
+        echo -e "\033[35;1mEnabling Ondrej Sury Launchpad repo for $DISTRO $RELEASE. \033[0m"
+        cat > /etc/apt/sources.list.d/PHP.list <<EOF
+# https://launchpad.net/~ondrej/+archive/ubuntu/php
+deb $PHP_REPO`echo $DISTRO | tr [:upper:] [:lower:]` $RELEASE main
+deb-src $PHP_REPO`echo $DISTRO | tr [:upper:] [:lower:]` $RELEASE main
+
+EOF
+
+        # Set APT pinning for PHP packages
+        cat > /etc/apt/preferences.d/PHP <<EOF
+# Prevent potential conflict with main repo/dotdeb
+# Always install from Ondrej Sury's repo
+Package: php*
+Pin: origin $PHP_REPO_HOSTNAME
+Pin-Priority: 1000
+
+EOF
+
+        # Import Ondrej signing key
+        apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0x4f4ea0aae5267a6c
+    fi
+
     # If user wants to install MariaDB instead of MySQL
     if [ $DBSERVER = 2 ]; then
         echo -e "\033[35;1mEnabling MariaDB.org repo for $DISTRO $RELEASE. \033[0m"
